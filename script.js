@@ -1,281 +1,158 @@
-// ===== FUNCIONALIDAD DEL FORMULARIO DE CONTACTO =====
+// Lista de técnicos
+const technicians = [
+    'ALINEACIÓN Y BALANCEO',
+    'EM1',
+    'EM2',
+    'RG2',
+    'LARRY B',
+    'PEDRO P',
+    'MAURICIO J',
+    'BRAYAM F',
+    'ALEXANDER M',
+    'LAV1',
+    'LAV2'
+];
 
-// Esperamos a que el DOM esté completamente cargado
-document.addEventListener('DOMContentLoaded', function() {
+// Horas del día
+const hours = ['7:00', '8:00', '9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '18:30'];
+
+// Color seleccionado actualmente
+let selectedColor = 'red';
+
+// Inicializar la tabla
+function initializeTable() {
+    const tableBody = document.getElementById('tableBody');
     
-    // Obtenemos el formulario de contacto por su ID
-    const contactForm = document.getElementById('contactForm');
+    technicians.forEach(technician => {
+        const row = document.createElement('tr');
+        
+        // Celda del nombre del técnico
+        const nameCell = document.createElement('td');
+        nameCell.textContent = technician;
+        nameCell.className = 'technician-name';
+        row.appendChild(nameCell);
+        
+        // Celdas de horas
+        hours.forEach(hour => {
+            const cell = document.createElement('td');
+            cell.className = 'cell';
+            cell.dataset.technician = technician;
+            cell.dataset.hour = hour;
+            cell.addEventListener('click', handleCellClick);
+            row.appendChild(cell);
+        });
+        
+        tableBody.appendChild(row);
+    });
     
-    // Agregamos un event listener para el evento 'submit' del formulario
-    contactForm.addEventListener('submit', function(event) {
-        // Prevenimos el comportamiento por defecto para manejar el envío manualmente
-        event.preventDefault();
+    // Cargar datos guardados
+    loadSavedData();
+}
+
+// Manejar clic en celda
+function handleCellClick(event) {
+    const cell = event.target;
+    
+    // Remover todas las clases de color
+    cell.classList.remove('red', 'yellow', 'blue');
+    
+    // Si el color seleccionado es 'clear', limpiar la celda
+    if (selectedColor === 'clear') {
+        cell.className = 'cell';
+    } else {
+        // Aplicar el color seleccionado
+        cell.className = `cell ${selectedColor}`;
+    }
+    
+    // Guardar datos
+    saveData();
+}
+
+// Cambiar color seleccionado
+function setupColorButtons() {
+    const colorButtons = document.querySelectorAll('.color-btn');
+    
+    colorButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Remover clase active de todos los botones
+            colorButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Agregar clase active al botón clickeado
+            button.classList.add('active');
+            
+            // Actualizar color seleccionado
+            selectedColor = button.dataset.color;
+        });
+    });
+}
+
+// Guardar datos en localStorage
+function saveData() {
+    const data = {};
+    const cells = document.querySelectorAll('.cell');
+    
+    cells.forEach(cell => {
+        const technician = cell.dataset.technician;
+        const hour = cell.dataset.hour;
+        const color = cell.classList.contains('red') ? 'red' :
+                     cell.classList.contains('yellow') ? 'yellow' :
+                     cell.classList.contains('blue') ? 'blue' : 'none';
         
-        // Obtenemos los valores del formulario
-        const formData = new FormData(contactForm);
-        const name = formData.get('name');
-        const email = formData.get('email');
-        const message = formData.get('message');
-        
-        // Validamos que todos los campos estén llenos
-        if (!name || !email || !message) {
-            alert('Por favor, completa todos los campos del formulario.');
-            return;
+        if (!data[technician]) {
+            data[technician] = {};
         }
         
-        // Enviamos el formulario a Formspree usando fetch
-        fetch('https://formspree.io/f/meopjkwq', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                name: name,
-                email: email,
-                message: message
-            })
-        })
-        .then(response => {
-            if (response.ok) {
-                // Mostramos el mensaje en la consola del navegador
-                console.log('Formulario enviado a Formspree correctamente');
-                console.log('Datos del formulario:');
-                console.log('Nombre:', name);
-                console.log('Email:', email);
-                console.log('Mensaje:', message);
-                
-                // Mostramos una alerta visual al usuario
-                alert('¡Mensaje enviado correctamente! Te contactaremos pronto.');
-                
-                // Limpiamos el formulario después del envío
-                contactForm.reset();
-            } else {
-                throw new Error('Error al enviar el formulario');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Hubo un error al enviar el mensaje. Por favor, inténtalo de nuevo.');
-        });
-    });
-});
-
-// ===== NAVEGACIÓN SUAVE =====
-
-// Función para hacer la navegación suave entre secciones
-function smoothScroll() {
-    // Obtenemos todos los enlaces de navegación
-    const navLinks = document.querySelectorAll('.nav-link');
-    
-    // Agregamos un event listener a cada enlace
-    navLinks.forEach(link => {
-        link.addEventListener('click', function(event) {
-            // Prevenimos el comportamiento por defecto del enlace
-            event.preventDefault();
-            
-            // Obtenemos el ID de la sección a la que queremos ir
-            const targetId = this.getAttribute('href');
-            const targetSection = document.querySelector(targetId);
-            
-            // Si la sección existe, hacemos scroll suave hacia ella
-            if (targetSection) {
-                targetSection.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        });
-    });
-}
-
-// ===== EFECTOS DE SCROLL PARA LA NAVEGACIÓN =====
-
-// Función para cambiar el estilo de la barra de navegación al hacer scroll
-function handleNavbarScroll() {
-    const navbar = document.querySelector('.navbar');
-    
-    // Agregamos un event listener para el evento 'scroll'
-    window.addEventListener('scroll', function() {
-        // Si hemos hecho scroll más de 100px, agregamos una clase
-        if (window.scrollY > 100) {
-            navbar.style.background = 'rgba(217, 60, 232, 0.98)';
-            navbar.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
-        } else {
-            // Si no, mantenemos el estilo original
-            navbar.style.background = 'rgba(217, 60, 232, 0.95)';
-            navbar.style.boxShadow = 'none';
+        if (color !== 'none') {
+            data[technician][hour] = color;
         }
     });
+    
+    localStorage.setItem('scheduleData', JSON.stringify(data));
 }
 
-// ===== EFECTOS DE HOVER PARA LOS BOTONES "VER MÁS" =====
-
-// Función para agregar efectos interactivos a los botones de proyectos
-function addProjectButtonEffects() {
-    // Obtenemos todos los botones "Ver más" de los proyectos
-    const projectButtons = document.querySelectorAll('.project-card .btn-outline');
+// Cargar datos guardados
+function loadSavedData() {
+    const savedData = localStorage.getItem('scheduleData');
     
-    // Agregamos efectos a cada botón
-    projectButtons.forEach(button => {
-        // Efecto al pasar el mouse por encima
-        button.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-3px) scale(1.05)';
-            this.style.boxShadow = '0 10px 25px rgba(217, 60, 232, 0.3)';
-        });
+    if (savedData) {
+        const data = JSON.parse(savedData);
         
-        // Efecto al quitar el mouse
-        button.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0) scale(1)';
-            this.style.boxShadow = 'none';
+        Object.keys(data).forEach(technician => {
+            Object.keys(data[technician]).forEach(hour => {
+                const cell = document.querySelector(
+                    `[data-technician="${technician}"][data-hour="${hour}"]`
+                );
+                
+                if (cell) {
+                    cell.classList.remove('red', 'yellow', 'blue');
+                    cell.classList.add(data[technician][hour]);
+                }
+            });
         });
-        
-        // Efecto al hacer clic
-        button.addEventListener('click', function(event) {
-            // Prevenimos el comportamiento por defecto
-            event.preventDefault();
-            
-            // Obtenemos el título del proyecto
-            const projectTitle = this.closest('.project-card').querySelector('h3').textContent;
-            
-            // Mostramos información del proyecto
-            alert(`Proyecto: ${projectTitle}\n\nEste es un proyecto ficticio para demostrar las capacidades de Lina Villamizar. En un portafolio real, aquí se mostrarían más detalles del proyecto.`);
-        });
-    });
-}
-
-// ===== EFECTOS DE ANIMACIÓN AL SCROLL =====
-
-// Función para agregar animaciones cuando los elementos entran en vista
-function addScrollAnimations() {
-    // Creamos un observer para detectar cuando los elementos entran en vista
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            // Si el elemento está visible
-            if (entry.isIntersecting) {
-                // Agregamos una clase de animación
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
-            }
-        });
-    }, {
-        threshold: 0.1, // Se activa cuando el 10% del elemento es visible
-        rootMargin: '0px 0px -50px 0px' // Margen adicional
-    });
-    
-    // Observamos las tarjetas de experiencia y proyectos
-    const animatedElements = document.querySelectorAll('.experience-card, .project-card, .skill-tag');
-    animatedElements.forEach(element => {
-        // Configuramos el estado inicial
-        element.style.opacity = '0';
-        element.style.transform = 'translateY(30px)';
-        element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-        
-        // Agregamos el elemento al observer
-        observer.observe(element);
-    });
-}
-
-// ===== EFECTOS DE HOVER PARA LAS TARJETAS =====
-
-// Función para agregar efectos de hover a las tarjetas
-function addCardHoverEffects() {
-    // Efectos para las tarjetas de experiencia
-    const experienceCards = document.querySelectorAll('.experience-card');
-    experienceCards.forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-8px) scale(1.02)';
-        });
-        
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0) scale(1)';
-        });
-    });
-    
-    // Efectos para las tarjetas de proyectos
-    const projectCards = document.querySelectorAll('.project-card');
-    projectCards.forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-12px) scale(1.03)';
-        });
-        
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0) scale(1)';
-        });
-    });
-}
-
-// ===== FUNCIONALIDAD DE LAS REDES SOCIALES =====
-
-// Función para agregar funcionalidad a los enlaces de redes sociales
-function addSocialLinksFunctionality() {
-    const socialLinks = document.querySelectorAll('.social-link');
-    
-    socialLinks.forEach(link => {
-        link.addEventListener('click', function(event) {
-            // Prevenimos el comportamiento por defecto
-            event.preventDefault();
-            
-            // Obtenemos el tipo de red social basado en el aria-label
-            const socialType = this.getAttribute('aria-label');
-            
-            // Mostramos un mensaje informativo
-            alert(`Enlace a ${socialType}\n\nEn un portafolio real, este enlace llevaría al perfil de Lina Villamizar en ${socialType}.`);
-        });
-    });
-}
-
-// ===== INICIALIZACIÓN DE TODAS LAS FUNCIONES =====
-
-// Función principal que inicializa todas las funcionalidades
-function initializePortfolio() {
-    console.log('🚀 Inicializando portafolio de Lina Villamizar...');
-    
-    // Llamamos a todas las funciones de inicialización
-    smoothScroll();
-    handleNavbarScroll();
-    addProjectButtonEffects();
-    addScrollAnimations();
-    addCardHoverEffects();
-    addSocialLinksFunctionality();
-    
-    console.log('✅ Portafolio inicializado correctamente');
-    console.log('📧 El formulario de contacto está listo para recibir mensajes');
-    console.log('🎨 Todos los efectos visuales están activos');
-}
-
-// ===== EVENT LISTENER PARA CUANDO LA PÁGINA ESTÉ COMPLETAMENTE CARGADA =====
-
-// Esperamos a que la página esté completamente cargada antes de inicializar
-window.addEventListener('load', function() {
-    // Pequeño delay para asegurar que todo esté renderizado
-    setTimeout(initializePortfolio, 100);
-});
-
-// ===== FUNCIONES ADICIONALES PARA MEJORAR LA EXPERIENCIA =====
-
-// Función para mostrar un mensaje de bienvenida
-function showWelcomeMessage() {
-    // Solo mostramos el mensaje si es la primera vez que visitan la página
-    if (!localStorage.getItem('portfolioVisited')) {
-        setTimeout(() => {
-            alert('¡Bienvenido al portafolio de Lina Villamizar!\n\nExplora las diferentes secciones para conocer su experiencia profesional.');
-            localStorage.setItem('portfolioVisited', 'true');
-        }, 1000);
     }
 }
 
-// Función para agregar efectos de teclado (accesibilidad)
-function addKeyboardNavigation() {
-    // Agregamos navegación por teclado para los botones
-    document.addEventListener('keydown', function(event) {
-        // Si se presiona Enter en un botón, activamos su funcionalidad
-        if (event.key === 'Enter' && event.target.classList.contains('btn')) {
-            event.target.click();
+// Limpiar todo
+function setupClearButton() {
+    const clearButton = document.getElementById('clearAll');
+    
+    clearButton.addEventListener('click', () => {
+        if (confirm('¿Está seguro de que desea limpiar todo el tablero?')) {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                cell.classList.remove('red', 'yellow', 'blue');
+                cell.className = 'cell';
+            });
+            
+            localStorage.removeItem('scheduleData');
         }
     });
 }
 
-// Llamamos a las funciones adicionales
-showWelcomeMessage();
-addKeyboardNavigation();
+// Inicializar cuando se carga la página
+document.addEventListener('DOMContentLoaded', () => {
+    initializeTable();
+    setupColorButtons();
+    setupClearButton();
+});
 
